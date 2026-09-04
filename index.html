@@ -424,6 +424,8 @@
             font-size: 1.5rem;
             opacity: 0.6;
             animation: fallLeaf linear infinite;
+            animation-duration: var(--fall-duration, 12s);
+            animation-delay: var(--fall-delay, 0s);
             will-change: transform;
         }
 
@@ -436,6 +438,19 @@
             90% { opacity: 0.7; }
             100% {
                 transform: translateY(calc(100vh + 100px)) translateX(100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fallLeafMobile {
+            0% {
+                transform: translateY(-100px) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% {
+                transform: translateY(calc(600vh + 100px)) translateX(100px) rotate(720deg);
                 opacity: 0;
             }
         }
@@ -1161,6 +1176,15 @@
 
             section { scroll-margin-top: 60px; }
 
+            #event {
+                margin-top: 30vh;
+            }
+
+            .leaf {
+                animation-name: fallLeafMobile;
+                animation-duration: calc(var(--fall-duration, 12s) * 4);
+            }
+
             .publications-grid, .social-grid, .challenges-grid, .prizes-grid {
                 grid-template-columns: 1fr;
             }
@@ -1368,8 +1392,8 @@
         const EVENT_END_DATE = new Date('2026-11-20T00:00:00');
         const CHALLENGE_OPEN_DATES = {
             1: new Date('2026-09-01T00:00:00'),
-            2: new Date('2026-09-01T00:00:00'),
-            3: new Date('2026-09-01T00:00:00')
+            2: new Date('2026-10-01T00:00:00'),
+            3: new Date('2026-10-30T00:00:00')
         };
 
         if ('scrollRestoration' in history) {
@@ -1407,7 +1431,7 @@
 
         function createFallingLeaves() {
             const container = document.getElementById('fallingLeaves');
-            const leaves = ['🍂', '🍁', '🍃'];
+            const leaves = ['🍂', '🍁', ''];
             const totalLeaves = 25;
             for (let i = 0; i < totalLeaves; i++) {
                 const leaf = document.createElement('div');
@@ -1415,9 +1439,8 @@
                 leaf.textContent = leaves[Math.floor(Math.random() * leaves.length)];
                 leaf.style.left = Math.random() * 100 + '%';
                 const duration = 8 + Math.random() * 8;
-                leaf.style.animationDuration = duration + 's';
-                const delay = -Math.random() * duration;
-                leaf.style.animationDelay = delay + 's';
+                leaf.style.setProperty('--fall-duration', duration + 's');
+                leaf.style.setProperty('--fall-delay', (-Math.random() * duration) + 's');
                 leaf.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
                 container.appendChild(leaf);
             }
@@ -2112,7 +2135,7 @@
                 straw.hidden = true;
                 strawGameWon = true;
                 const statusEl = document.getElementById('strawStatus');
-                statusEl.textContent = '✅ Нашёл иголку! Код: G7FALL';
+                statusEl.textContent = '✅ Вы нашли иголку! Код: G7FALL';
                 statusEl.style.color = '#4caf50';
                 savePart(3, 'G7FALL');
                 renderCurrentStrawLayer();
