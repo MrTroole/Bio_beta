@@ -448,6 +448,14 @@
             z-index: 1;
         }
 
+        .event-timer-label {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
         .event-timer {
             display: flex;
             justify-content: center;
@@ -691,48 +699,76 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            font-family: monospace;
         }
 
-        .pipe-cell:hover {
+        .pipe-cell:hover:not(.fixed) {
             background: rgba(255, 140, 0, 0.1);
             border-color: rgba(255, 140, 0, 0.4);
         }
 
         .pipe-cell.fixed {
             cursor: default;
-            opacity: 0.7;
         }
 
-        .pipe-cell.connected {
-            border-color: #4caf50;
+        .pipe-cell.battery-cell {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .pipe-cell.leaf-cell {
             background: rgba(76, 175, 80, 0.1);
+            border-color: rgba(76, 175, 80, 0.3);
+        }
+
+        .pipe-cell.on-path.connected {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.15);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
         }
 
         .pipe-content {
             transition: transform 0.3s ease;
+            display: inline-block;
+            line-height: 1;
         }
 
-        .straws-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .straw-layer-counter {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #ff8c00;
+            font-weight: 600;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .straw-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 140, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .straw-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8c00, #ff6b00);
+            transition: width 0.4s ease;
+            border-radius: 3px;
         }
 
         .straw-layer {
-            display: none;
+            display: grid;
             grid-template-columns: repeat(10, 1fr);
             gap: 4px;
             padding: 15px;
             background: rgba(255, 140, 0, 0.05);
             border-radius: 16px;
-        }
-
-        .straw-layer.active {
-            display: grid;
         }
 
         .straw {
@@ -747,9 +783,10 @@
             justify-content: center;
             color: #8b6914;
             position: relative;
+            font-weight: 700;
         }
 
-        .straw:hover { transform: scale(1.1); z-index: 2; }
+        .straw:hover:not(.hidden) { transform: scale(1.1); z-index: 2; }
 
         .straw.needle {
             background: #777;
@@ -760,29 +797,6 @@
             opacity: 0;
             transform: scale(0);
             pointer-events: none;
-        }
-
-        .layer-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .layer-btn {
-            padding: 8px 20px;
-            background: rgba(255, 140, 0, 0.1);
-            border: 1px solid rgba(255, 140, 0, 0.3);
-            border-radius: 50px;
-            color: #ff8c00;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .layer-btn.active {
-            background: #ff8c00;
-            color: var(--dark-bg);
         }
 
         .code-section {
@@ -1076,7 +1090,7 @@
             .timer-block { padding: 15px 18px; min-width: 70px; }
             .timer-value { font-size: 1.8rem; }
 
-            .straw-layer { grid-template-columns: repeat(5, 1fr); }
+            .straw-layer { grid-template-columns: repeat(6, 1fr); }
 
             .pipe-grid {
                 grid-template-columns: repeat(4, 60px);
@@ -1085,6 +1099,7 @@
             .pipe-cell {
                 width: 60px;
                 height: 60px;
+                font-size: 2rem;
             }
 
             .prize-banner {
@@ -1145,6 +1160,7 @@
             <div class="event-content">
                 <h2 class="section-title reveal">🍂 Осеннее событие</h2>
 
+                <p class="event-timer-label reveal">Событие закончится через:</p>
                 <div class="event-timer reveal" id="eventTimer">
                     <div class="timer-block">
                         <div class="timer-value" id="timerDays">00</div>
@@ -1189,7 +1205,7 @@
                         <div>
                             <div class="challenge-icon">🌾</div>
                             <div class="challenge-title">Иголка в соломе</div>
-                            <div class="challenge-desc">Найди серую иголку среди 150 соломок. Переключайся между слоями!</div>
+                            <div class="challenge-desc">Найди серую иголку, очищая 10 слоёв соломок по 30 штук. Переходишь дальше автоматически после очистки слоя!</div>
                         </div>
                         <button class="challenge-btn" onclick="openChallenge(3)" disabled>Откроется 30 октября</button>
                     </div>
@@ -1265,8 +1281,8 @@
         const EVENT_END_DATE = new Date('2026-11-20T00:00:00');
         const CHALLENGE_OPEN_DATES = {
             1: new Date('2026-09-01T00:00:00'),
-            2: new Date('2026-09-01T00:00:00'),
-            3: new Date('2026-09-01T00:00:00')
+            2: new Date('2026-10-01T00:00:00'),
+            3: new Date('2026-10-30T00:00:00')
         };
 
         if ('scrollRestoration' in history) {
@@ -1625,8 +1641,12 @@
             }
         }
 
+        let currentChallengeNum = 0;
+
         function openChallenge(num) {
-            if (!isChallengeOpen(num) || getSavedPart(num)) return;
+            if (!isChallengeOpen(num)) return;
+            if (getSavedPart(num)) return;
+            currentChallengeNum = num;
             const modalContent = document.getElementById('modalContent');
             if (num === 1) renderPuzzle(modalContent);
             else if (num === 2) renderBattery(modalContent);
@@ -1636,6 +1656,7 @@
 
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('active');
+            currentChallengeNum = 0;
         }
 
         let puzzleState = [];
@@ -1689,187 +1710,324 @@
             [puzzleState[emptyIdx], puzzleState[idx]] = [puzzleState[idx], puzzleState[emptyIdx]];
             renderPuzzleGrid();
             if (JSON.stringify(puzzleState) === JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 0])) {
-                document.getElementById('puzzleStatus').textContent = '✅ Победа! Код: RDC9';
-                document.getElementById('puzzleStatus').style.color = '#4caf50';
+                const statusEl = document.getElementById('puzzleStatus');
+                statusEl.textContent = '✅ Победа! Код: RDC9';
+                statusEl.style.color = '#4caf50';
                 savePart(1, 'RDC9');
                 setTimeout(closeModal, 1500);
             }
         }
 
+        // === АККУМУЛЯТОР: правильная логика труб ===
+        // Направления: 0=top, 1=right, 2=bottom, 3=left
+        // Путь батареи: 0(батарея) → 4 → 8 → 12 → 13 → 14 → 15(лист)
+        //
+        // Клетка 0 (батарея): выход только вниз
+        // Клетка 4: вход сверху + выход вниз = [0, 2]
+        // Клетка 8: вход сверху + выход вниз = [0, 2]
+        // Клетка 12: вход сверху + выход вправо = [0, 1]
+        // Клетка 13: вход слева + выход вправо = [1, 3]
+        // Клетка 14: вход слева + выход вправо = [1, 3]
+        // Клетка 15 (лист): вход только слева
+
+        const PATH_INDICES = [4, 8, 12, 13, 14];
+        const PATH_REQUIRED_DIRS = {
+            4: [0, 2],   // top + bottom
+            8: [0, 2],   // top + bottom
+            12: [0, 1],  // top + right (угол)
+            13: [1, 3],  // right + left
+            14: [1, 3]   // right + left
+        };
+
+        // Базовые типы труб (направления при rotation=0)
+        const PIPE_TYPES = {
+            straight: [0, 2], // top + bottom (вертикальная)
+            corner: [0, 1]    // top + right (угол)
+        };
+
         let pipeGrid = [];
-        function renderBattery(container) {
-            pipeGrid = generatePipeGrid();
-            container.innerHTML = `
-                <h2 class="modal-title">🔋 Аккумулятор</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Вращай трубы, чтобы соединить батарею с листочком</p>
-                <div class="pipe-grid" id="pipeGrid"></div>
-                <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;" id="batteryStatus"></p>
-            `;
-            renderPipeGrid();
-            checkPipeConnection();
+
+        function rotateDirections(dirs, rotation) {
+            // rotation в градусах: 0, 90, 180, 270
+            const steps = (rotation / 90) % 4;
+            return dirs.map(d => (d + steps) % 4);
+        }
+
+        function dirsMatch(a, b) {
+            if (a.length !== b.length) return false;
+            const sortedA = [...a].sort();
+            const sortedB = [...b].sort();
+            return sortedA.every((v, i) => v === sortedB[i]);
+        }
+
+        function getPipeIcon(currentDirs) {
+            // Определяем иконку трубы по текущим направлениям
+            const sorted = [...currentDirs].sort();
+            // Прямая: top+bottom=[0,2] или right+left=[1,3]
+            if (sorted[0] === 0 && sorted[1] === 2) return '│';
+            if (sorted[0] === 1 && sorted[1] === 3) return '─';
+            // Углы
+            if (sorted[0] === 0 && sorted[1] === 1) return '└';
+            if (sorted[0] === 1 && sorted[1] === 2) return '┌';
+            if (sorted[0] === 2 && sorted[1] === 3) return '┐';
+            if (sorted[0] === 0 && sorted[1] === 3) return '┘';
+            return '?';
         }
 
         function generatePipeGrid() {
             const grid = [];
             for (let i = 0; i < 16; i++) {
-                grid.push({
-                    type: i === 0 ? 'battery' : (i === 15 ? 'leaf' : 'pipe'),
-                    rotation: i === 0 || i === 15 ? 0 : Math.floor(Math.random() * 4) * 90,
-                    connected: false
-                });
+                if (i === 0) {
+                    grid.push({ type: 'battery', rotation: 0 });
+                } else if (i === 15) {
+                    grid.push({ type: 'leaf', rotation: 0 });
+                } else if (PATH_INDICES.includes(i)) {
+                    // Труба на пути: правильный тип с случайным поворотом
+                    const required = PATH_REQUIRED_DIRS[i];
+                    let baseType = 'straight';
+                    let baseRotation = 0;
+                    // Определяем базовый тип и правильный поворот
+                    if (dirsMatch(required, [0, 2])) {
+                        baseType = 'straight';
+                        baseRotation = 0;
+                    } else if (dirsMatch(required, [1, 3])) {
+                        baseType = 'straight';
+                        baseRotation = 90;
+                    } else if (dirsMatch(required, [0, 1])) {
+                        baseType = 'corner';
+                        baseRotation = 0;
+                    }
+                    // Случайный начальный поворот (кратный 90)
+                    const randomRot = Math.floor(Math.random() * 4) * 90;
+                    grid.push({
+                        type: 'pipe',
+                        baseType: baseType,
+                        rotation: randomRot,
+                        correctRotation: baseRotation,
+                        onPath: true
+                    });
+                } else {
+                    // Клетка не на пути: случайная труба
+                    const types = ['straight', 'corner'];
+                    const randType = types[Math.floor(Math.random() * types.length)];
+                    const randRot = Math.floor(Math.random() * 4) * 90;
+                    grid.push({
+                        type: 'pipe',
+                        baseType: randType,
+                        rotation: randRot,
+                        correctRotation: null,
+                        onPath: false
+                    });
+                }
             }
             return grid;
         }
 
-        function getPipeIcon(type, rotation) {
-            if (type === 'battery') return '🔋';
-            if (type === 'leaf') return '🍁';
-            const pipes = ['│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼'];
-            return pipes[Math.floor(Math.random() * pipes.length)];
+        function isPipeCorrect(cell) {
+            if (!cell.onPath) return false;
+            // Труба правильная, если её текущие выходы совпадают с требуемыми
+            const baseDirs = PIPE_TYPES[cell.baseType];
+            const currentDirs = rotateDirections(baseDirs, cell.rotation);
+            return dirsMatch(currentDirs, PATH_REQUIRED_DIRS[PATH_INDICES[PATH_INDICES.indexOf(pipeGrid.indexOf(cell))]]);
+        }
+
+        function checkPathCompletion() {
+            // Проверяем все трубы на пути
+            return PATH_INDICES.every(idx => {
+                const cell = pipeGrid[idx];
+                const baseDirs = PIPE_TYPES[cell.baseType];
+                const currentDirs = rotateDirections(baseDirs, cell.rotation);
+                return dirsMatch(currentDirs, PATH_REQUIRED_DIRS[idx]);
+            });
+        }
+
+        function renderBattery(container) {
+            pipeGrid = generatePipeGrid();
+            container.innerHTML = `
+                <h2 class="modal-title">🔋 Аккумулятор</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Вращай трубы, чтобы соединить батарею с листочком. Нужно создать непрерывный путь!</p>
+                <div class="pipe-grid" id="pipeGrid"></div>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;" id="batteryStatus">Поверни трубы правильно</p>
+            `;
+            renderPipeGrid();
         }
 
         function renderPipeGrid() {
-            const grid = document.getElementById('pipeGrid');
-            grid.innerHTML = '';
+            const gridEl = document.getElementById('pipeGrid');
+            gridEl.innerHTML = '';
+            const pathComplete = checkPathCompletion();
+
             pipeGrid.forEach((cell, idx) => {
                 const div = document.createElement('div');
-                div.className = 'pipe-cell' + (cell.type !== 'pipe' ? ' fixed' : '') + (cell.connected ? ' connected' : '');
+                let className = 'pipe-cell';
+
+                if (cell.type === 'battery') {
+                    className += ' battery-cell fixed';
+                } else if (cell.type === 'leaf') {
+                    className += ' leaf-cell fixed';
+                } else {
+                    if (cell.onPath) className += ' on-path';
+                    if (pathComplete && cell.onPath) className += ' connected';
+                }
+
+                div.className = className;
+
                 const content = document.createElement('span');
                 content.className = 'pipe-content';
-                content.textContent = cell.type === 'pipe' ? '│' : (cell.type === 'battery' ? '🔋' : '🍁');
-                content.style.transform = `rotate(${cell.rotation}deg)`;
+
+                if (cell.type === 'battery') {
+                    content.textContent = '🔋';
+                } else if (cell.type === 'leaf') {
+                    content.textContent = pathComplete ? '🍁' : '🍂';
+                } else {
+                    const baseDirs = PIPE_TYPES[cell.baseType];
+                    const currentDirs = rotateDirections(baseDirs, cell.rotation);
+                    content.textContent = getPipeIcon(currentDirs);
+                    content.style.transform = `rotate(${cell.rotation}deg)`;
+                }
+
                 div.appendChild(content);
+
                 if (cell.type === 'pipe') {
                     div.onclick = () => rotatePipe(idx);
                 }
-                grid.appendChild(div);
+
+                gridEl.appendChild(div);
             });
+
+            if (pathComplete) {
+                const statusEl = document.getElementById('batteryStatus');
+                if (statusEl && !statusEl.dataset.won) {
+                    statusEl.dataset.won = 'true';
+                    statusEl.textContent = '✅ Путь создан! Код: M0F4';
+                    statusEl.style.color = '#4caf50';
+                    savePart(2, 'M0F4');
+                    setTimeout(closeModal, 1500);
+                }
+            }
         }
 
         function rotatePipe(idx) {
+            const statusEl = document.getElementById('batteryStatus');
+            if (statusEl && statusEl.dataset.won === 'true') return;
             pipeGrid[idx].rotation = (pipeGrid[idx].rotation + 90) % 360;
             renderPipeGrid();
-            checkPipeConnection();
         }
 
-        function checkPipeConnection() {
-            pipeGrid.forEach(cell => cell.connected = false);
-            pipeGrid[0].connected = true;
-            pipeGrid[15].connected = true;
+        // === ИГОЛКА В СОЛОМЕ: 10 слоёв по 30 соломок ===
+        // Иголка на случайном слое из 7, 8, 9, 10 (индексы 6, 7, 8, 9)
+        const TOTAL_LAYERS = 10;
+        const STRAWS_PER_LAYER = 30;
 
-            const connected = new Set([0, 15]);
-            let changed = true;
-            while (changed) {
-                changed = false;
-                for (let i = 0; i < 16; i++) {
-                    if (connected.has(i)) continue;
-                    const row = Math.floor(i / 4);
-                    const col = i % 4;
-                    const neighbors = [];
-                    if (row > 0) neighbors.push(i - 4);
-                    if (row < 3) neighbors.push(i + 4);
-                    if (col > 0) neighbors.push(i - 1);
-                    if (col < 3) neighbors.push(i + 1);
+        let currentStrawLayer = 0;
+        let needleLayerIdx = -1;
+        let needleLocalIdx = -1;
+        let strawLayers = [];
+        let strawGameWon = false;
 
-                    for (const neighbor of neighbors) {
-                        if (connected.has(neighbor)) {
-                            connected.add(i);
-                            pipeGrid[i].connected = true;
-                            changed = true;
-                            break;
-                        }
-                    }
-                }
-            }
+        function initStrawGame() {
+            currentStrawLayer = 0;
+            strawGameWon = false;
+            // Иголка на слое 7, 8, 9 или 10 (индексы 6, 7, 8, 9)
+            needleLayerIdx = 6 + Math.floor(Math.random() * 4);
+            needleLocalIdx = Math.floor(Math.random() * STRAWS_PER_LAYER);
+            strawLayers = [];
 
-            renderPipeGrid();
-
-            if (connected.size === 16) {
-                document.getElementById('batteryStatus').textContent = '✅ Соединено! Код: M0F4';
-                document.getElementById('batteryStatus').style.color = '#4caf50';
-                savePart(2, 'M0F4');
-                setTimeout(closeModal, 1500);
-            }
-        }
-
-        let currentLayer = 0;
-        let needleIdx = -1;
-        let strawLayers = [[], [], []];
-
-        function renderStraws(container) {
-            currentLayer = 0;
-            needleIdx = Math.floor(Math.random() * 150);
-            strawLayers = [[], [], []];
-
-            for (let layer = 0; layer < 3; layer++) {
-                for (let i = 0; i < 50; i++) {
-                    const globalIdx = layer * 50 + i;
-                    strawLayers[layer].push({
-                        idx: globalIdx,
-                        isNeedle: globalIdx === needleIdx,
+            for (let layer = 0; layer < TOTAL_LAYERS; layer++) {
+                const layerArr = [];
+                for (let i = 0; i < STRAWS_PER_LAYER; i++) {
+                    const isNeedle = (layer === needleLayerIdx && i === needleLocalIdx);
+                    layerArr.push({
+                        isNeedle: isNeedle,
                         hidden: false
                     });
                 }
+                strawLayers.push(layerArr);
             }
+        }
 
+        function renderStraws(container) {
+            initStrawGame();
             container.innerHTML = `
                 <h2 class="modal-title">🌾 Иголка в соломе</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Найди серую иголку среди 150 соломок. Переключайся между слоями!</p>
-                <div class="layer-controls" id="layerControls">
-                    <button class="layer-btn active" onclick="switchLayer(0)">Слой 1</button>
-                    <button class="layer-btn" onclick="switchLayer(1)">Слой 2</button>
-                    <button class="layer-btn" onclick="switchLayer(2)">Слой 3</button>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Найди серую иголку, очищая слои соломок. После очистки слоя автоматически перейдёшь к следующему!</p>
+                <div class="straw-layer-counter" id="strawLayerCounter">Слой 1 из 10</div>
+                <div class="straw-progress">
+                    <div class="straw-progress-bar" id="strawProgressBar" style="width: 10%;"></div>
                 </div>
-                <div class="straws-container" id="strawsContainer"></div>
+                <div class="straw-layer" id="currentStrawLayer"></div>
                 <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 15px;" id="strawStatus"></p>
             `;
-            renderStrawLayers();
+            renderCurrentStrawLayer();
         }
 
-        function switchLayer(layer) {
-            currentLayer = layer;
-            const btns = document.querySelectorAll('.layer-btn');
-            btns.forEach((btn, idx) => {
-                btn.classList.toggle('active', idx === layer);
+        function renderCurrentStrawLayer() {
+            const layerEl = document.getElementById('currentStrawLayer');
+            if (!layerEl) return;
+            layerEl.innerHTML = '';
+
+            const layer = strawLayers[currentStrawLayer];
+            layer.forEach((straw, localIdx) => {
+                const strawDiv = document.createElement('div');
+                strawDiv.className = 'straw' + (straw.isNeedle ? ' needle' : '') + (straw.hidden ? ' hidden' : '');
+                strawDiv.textContent = '|';
+                if (!straw.hidden) {
+                    strawDiv.onclick = () => clickStraw(localIdx);
+                }
+                layerEl.appendChild(strawDiv);
             });
-            renderStrawLayers();
+
+            const counterEl = document.getElementById('strawLayerCounter');
+            if (counterEl) {
+                counterEl.textContent = `Слой ${currentStrawLayer + 1} из ${TOTAL_LAYERS}`;
+            }
+
+            const progressBar = document.getElementById('strawProgressBar');
+            if (progressBar) {
+                const progressPercent = ((currentStrawLayer + 1) / TOTAL_LAYERS) * 100;
+                progressBar.style.width = progressPercent + '%';
+            }
         }
 
-        function renderStrawLayers() {
-            const container = document.getElementById('strawsContainer');
-            container.innerHTML = '';
-
-            strawLayers.forEach((layer, layerIdx) => {
-                const layerDiv = document.createElement('div');
-                layerDiv.className = 'straw-layer' + (layerIdx === currentLayer ? ' active' : '');
-                layer.forEach(straw => {
-                    const strawDiv = document.createElement('div');
-                    strawDiv.className = 'straw' + (straw.isNeedle ? ' needle' : '') + (straw.hidden ? ' hidden' : '');
-                    strawDiv.textContent = '|';
-                    strawDiv.onclick = () => clickStraw(straw.idx);
-                    layerDiv.appendChild(strawDiv);
-                });
-                container.appendChild(layerDiv);
-            });
-        }
-
-        function clickStraw(idx) {
-            const layerIdx = Math.floor(idx / 50);
-            const localIdx = idx % 50;
-            const straw = strawLayers[layerIdx][localIdx];
-
+        function clickStraw(localIdx) {
+            if (strawGameWon) return;
+            const layer = strawLayers[currentStrawLayer];
+            const straw = layer[localIdx];
             if (straw.hidden) return;
 
             if (straw.isNeedle) {
                 straw.hidden = true;
-                document.getElementById('strawStatus').textContent = '✅ Нашёл иголку! Код: G7FALL';
-                document.getElementById('strawStatus').style.color = '#4caf50';
+                strawGameWon = true;
+                const statusEl = document.getElementById('strawStatus');
+                statusEl.textContent = '✅ Нашёл иголку! Код: G7FALL';
+                statusEl.style.color = '#4caf50';
                 savePart(3, 'G7FALL');
-                renderStrawLayers();
+                renderCurrentStrawLayer();
                 setTimeout(closeModal, 1500);
-            } else {
-                straw.hidden = true;
-                renderStrawLayers();
+                return;
+            }
+
+            straw.hidden = true;
+            renderCurrentStrawLayer();
+
+            // Проверяем, очищен ли текущий слой
+            const allHidden = layer.every(s => s.hidden);
+            if (allHidden) {
+                if (currentStrawLayer < TOTAL_LAYERS - 1) {
+                    currentStrawLayer++;
+                    const statusEl = document.getElementById('strawStatus');
+                    statusEl.textContent = `Слой очищен! Переход к слою ${currentStrawLayer + 1}...`;
+                    statusEl.style.color = '#ff8c00';
+                    setTimeout(() => {
+                        statusEl.textContent = '';
+                        renderCurrentStrawLayer();
+                    }, 800);
+                } else {
+                    // Последний слой очищен, но иголка не найдена (не должно произойти)
+                    const statusEl = document.getElementById('strawStatus');
+                    statusEl.textContent = 'Иголка где-то здесь...';
+                    statusEl.style.color = '#ff8c00';
+                }
             }
         }
 
