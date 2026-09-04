@@ -643,16 +643,57 @@
             padding-right: 40px;
         }
 
+        .how-step {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .how-step-num {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255, 140, 0, 0.15);
+            color: #ff8c00;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .how-step-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .how-step-text b {
+            color: var(--text-primary);
+        }
+
         .puzzle-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            position: relative;
             width: 280px;
+            height: 280px;
             margin: 0 auto 20px;
-            aspect-ratio: 1;
         }
 
         .puzzle-tile {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 33.3333%;
+            height: 33.3333%;
+            padding: 3px;
+            transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: pointer;
+        }
+
+        .puzzle-tile-inner {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #ff8c00, #ff6b00);
             color: white;
             font-size: 2rem;
@@ -661,20 +702,14 @@
             align-items: center;
             justify-content: center;
             border-radius: 12px;
-            cursor: pointer;
-            user-select: none;
             box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+            user-select: none;
             transition: transform 0.15s ease;
         }
 
-        .puzzle-tile.empty {
-            background: rgba(255, 255, 255, 0.05);
-            box-shadow: none;
-            cursor: default;
+        .puzzle-tile:active .puzzle-tile-inner {
+            transform: scale(0.92);
         }
-
-        .puzzle-tile:not(.empty):hover { transform: scale(0.95); }
-        .puzzle-tile:not(.empty):active { transform: scale(0.9); }
 
         .battery-game {
             display: flex;
@@ -915,6 +950,23 @@
         .activate-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .how-it-works-btn {
+            width: 100%;
+            margin-top: 14px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .how-it-works-btn:hover {
+            color: #ff8c00;
         }
 
         .prize-banner {
@@ -1242,6 +1294,7 @@
                         <input type="text" class="code-input" id="codeInput" placeholder="••••••••••••••" maxlength="14" autocomplete="off" spellcheck="false">
                     </div>
                     <button class="activate-btn" id="activateBtn" onclick="activateCode()" disabled>Активировать</button>
+                    <button class="how-it-works-btn" onclick="openHowItWorks()">Как это работает?</button>
                 </div>
 
                 <div class="prize-banner" id="prizeBanner">
@@ -1301,8 +1354,8 @@
         const EVENT_END_DATE = new Date('2026-11-20T00:00:00');
         const CHALLENGE_OPEN_DATES = {
             1: new Date('2026-09-01T00:00:00'),
-            2: new Date('2026-09-01T00:00:00'),
-            3: new Date('2026-09-01T00:00:00')
+            2: new Date('2026-10-01T00:00:00'),
+            3: new Date('2026-10-30T00:00:00')
         };
 
         if ('scrollRestoration' in history) {
@@ -1340,7 +1393,7 @@
 
         function createFallingLeaves() {
             const container = document.getElementById('fallingLeaves');
-            const leaves = ['🍂', '🍁', ''];
+            const leaves = ['🍂', '', ''];
             const totalLeaves = 25;
             for (let i = 0; i < totalLeaves; i++) {
                 const leaf = document.createElement('div');
@@ -1675,10 +1728,37 @@
             document.getElementById('modalOverlay').classList.remove('active');
         }
 
+        function openHowItWorks() {
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h2 class="modal-title">❓ Как это работает?</h2>
+                <div class="how-step">
+                    <div class="how-step-num">1</div>
+                    <div class="how-step-text">
+                        <b>Реши все головоломки.</b><br>
+                        Проходи испытания по мере их открытия. За каждое пройденное испытание ты получаешь часть кода — она появляется в блоках над полем ввода.
+                    </div>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-num">2</div>
+                    <div class="how-step-text">
+                        <b>Введи код.</b><br>
+                        Перепиши все части кода из блоков выше поля (например: RDC9 + M0F4 + G7FALL) в одно поле ввода без пробелов и нажми «Активировать». Если код верный — откроется плашка с призом!
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        // === ПАЗЛ с плавным перемещением плиток ===
         let puzzleState = [];
+        let puzzleTiles = {};
+        let puzzleWon = false;
+
         function renderPuzzle(container) {
+            puzzleWon = false;
             puzzleState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 120; i++) {
                 const emptyIdx = puzzleState.indexOf(0);
                 const moves = getPuzzleMoves(emptyIdx);
                 const move = moves[Math.floor(Math.random() * moves.length)];
@@ -1691,7 +1771,7 @@
                 <div class="puzzle-grid" id="puzzleGrid"></div>
                 <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;" id="puzzleStatus"></p>
             `;
-            renderPuzzleGrid();
+            buildPuzzleTiles();
         }
 
         function getPuzzleMoves(emptyIdx) {
@@ -1705,27 +1785,44 @@
             return moves;
         }
 
-        function renderPuzzleGrid() {
+        function buildPuzzleTiles() {
             const grid = document.getElementById('puzzleGrid');
             grid.innerHTML = '';
-            puzzleState.forEach((val, idx) => {
+            puzzleTiles = {};
+            for (let val = 1; val <= 8; val++) {
                 const tile = document.createElement('div');
-                tile.className = 'puzzle-tile' + (val === 0 ? ' empty' : '');
-                if (val !== 0) {
-                    tile.textContent = val;
-                    tile.onclick = () => movePuzzleTile(idx);
-                }
+                tile.className = 'puzzle-tile';
+                tile.innerHTML = `<div class="puzzle-tile-inner">${val}</div>`;
+                tile.onclick = () => clickPuzzleTile(val);
+                puzzleTiles[val] = tile;
                 grid.appendChild(tile);
+            }
+            positionAllTiles();
+        }
+
+        function positionAllTiles() {
+            puzzleState.forEach((val, idx) => {
+                if (val === 0) return;
+                const row = Math.floor(idx / 3);
+                const col = idx % 3;
+                puzzleTiles[val].style.transform = `translate(${col * 100}%, ${row * 100}%)`;
             });
         }
 
-        function movePuzzleTile(idx) {
+        function clickPuzzleTile(val) {
+            if (puzzleWon) return;
+            const idx = puzzleState.indexOf(val);
             const emptyIdx = puzzleState.indexOf(0);
-            const moves = getPuzzleMoves(emptyIdx);
-            if (!moves.includes(idx)) return;
+            if (!getPuzzleMoves(emptyIdx).includes(idx)) return;
+
             [puzzleState[emptyIdx], puzzleState[idx]] = [puzzleState[idx], puzzleState[emptyIdx]];
-            renderPuzzleGrid();
-            if (JSON.stringify(puzzleState) === JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 0])) {
+
+            const newRow = Math.floor(emptyIdx / 3);
+            const newCol = emptyIdx % 3;
+            puzzleTiles[val].style.transform = `translate(${newCol * 100}%, ${newRow * 100}%)`;
+
+            if (puzzleState.join(',') === '1,2,3,4,5,6,7,8,0') {
+                puzzleWon = true;
                 const statusEl = document.getElementById('puzzleStatus');
                 statusEl.textContent = '✅ Победа! Код: RDC9';
                 statusEl.style.color = '#4caf50';
@@ -1734,10 +1831,10 @@
             }
         }
 
-        // === АККУМУЛЯТОР: трубы вращаются честно, путь всегда проходим ===
-        // Направления: 0=верх, 1=право, 2=низ, 3=лево
-        // 4 варианта маршрута от батареи (0) к листу (15)
-        const PIPE_ROUTES = [
+        // === АККУМУЛЯТОР ===
+        // Змейка через все 16 клеток (75% шанс) и лёгкие маршруты с серыми точками (25%)
+        const SNAKE_ROUTE = [0, 1, 2, 3, 7, 6, 5, 4, 8, 9, 10, 11, 15, 14, 13, 12];
+        const EASY_ROUTES = [
             [0, 4, 8, 12, 13, 14, 15],
             [0, 1, 2, 3, 7, 11, 15],
             [0, 1, 5, 9, 13, 14, 15],
@@ -1756,7 +1853,13 @@
         }
 
         function buildPipeGame() {
-            const route = PIPE_ROUTES[Math.floor(Math.random() * PIPE_ROUTES.length)];
+            let route;
+            if (Math.random() < 0.75) {
+                route = SNAKE_ROUTE;
+            } else {
+                route = EASY_ROUTES[Math.floor(Math.random() * EASY_ROUTES.length)];
+            }
+
             const cells = {};
 
             for (let i = 1; i < route.length - 1; i++) {
@@ -1779,7 +1882,6 @@
                     baseRotation = { '01': 0, '12': 90, '23': 180, '03': 270 }[key];
                 }
 
-                // Стартовое положение ВСЕГДА неправильное, но решение достижимо поворотами
                 const offsets = isStraight ? [90, 270] : [90, 180, 270];
                 const offset = offsets[Math.floor(Math.random() * offsets.length)];
 
@@ -1876,7 +1978,7 @@
             const span = document.querySelector(`.pipe-cell[data-idx="${idx}"] .pipe-content`);
             if (span) span.style.transform = `rotate(${cell.rotation}deg)`;
 
-            setTimeout(updatePipeConnectedClasses, 200);
+            updatePipeConnectedClasses();
         }
 
         function updatePipeConnectedClasses() {
@@ -1920,7 +2022,6 @@
         function initStrawGame() {
             currentStrawLayer = 0;
             strawGameWon = false;
-            // Иголка на слое 7, 8, 9 или 10 (индексы 6, 7, 8, 9)
             needleLayerIdx = 6 + Math.floor(Math.random() * 4);
             needleLocalIdx = Math.floor(Math.random() * STRAWS_PER_LAYER);
             strawLayers = [];
