@@ -310,10 +310,6 @@
             transform: translateY(30px) scale(0.9);
         }
 
-        .social-card span:not(.social-icon) {
-            color: #7dd3fc;
-        }
-
         .publication-card.animate, .social-card.animate {
             animation: slideUpFade 0.6s ease-out forwards;
         }
@@ -1363,16 +1359,16 @@
     </div>
 
     <script>
-        const FIRST_MECTO = false;
-        const SECOND_MECTO = false;
-        const THIRD_MECTO = false;
+        const FIRST_MECTO = true;
+        const SECOND_MECTO = true;
+        const THIRD_MECTO = true;
 
         const FULL_CODE = 'RDC9M0F4G7FALL';
         const EVENT_END_DATE = new Date('2026-11-20T00:00:00');
         const CHALLENGE_OPEN_DATES = {
             1: new Date('2026-09-01T00:00:00'),
-            2: new Date('2026-09-01T00:00:00'),
-            3: new Date('2026-09-01T00:00:00')
+            2: new Date('2026-10-01T00:00:00'),
+            3: new Date('2026-10-30T00:00:00')
         };
 
         if ('scrollRestoration' in history) {
@@ -1410,7 +1406,7 @@
 
         function createFallingLeaves() {
             const container = document.getElementById('fallingLeaves');
-            const leaves = ['🍂', '', ''];
+            const leaves = ['🍂', '🍁', '🍃'];
             const totalLeaves = 25;
             for (let i = 0; i < totalLeaves; i++) {
                 const leaf = document.createElement('div');
